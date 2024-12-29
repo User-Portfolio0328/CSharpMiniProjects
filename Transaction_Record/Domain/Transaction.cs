@@ -26,7 +26,7 @@ namespace Transaction_Record.Domain
             if (string.IsNullOrWhiteSpace(Category)) 
                 return false;
 
-            if (Amount <= 0) 
+            if (this.Amount <= 0) 
                 return false;
 
             return true;

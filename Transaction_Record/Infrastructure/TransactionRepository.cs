@@ -35,22 +35,22 @@ namespace Transaction_Record.Infrastructure
         // 新增交易
         public void Add(Transaction transaction)
         {
-            var transactions = GetAll().ToList();
+            var transactions = this.GetAll().ToList();
             transaction.Id = transactions.Count > 0 ? transactions.Max(t => t.Id) + 1 : 1;
             transactions.Add(transaction);
-            SaveAll(transactions);
+            this.SaveAll(transactions);
         }
 
         // 刪除交易
         public void Delete(int id)
         {
-            var transactions = GetAll().ToList();
+            var transactions = this.GetAll().ToList();
             var transaction = transactions.FirstOrDefault(t => t.Id == id);
 
             if (transaction != null)
             {
                 transactions.Remove(transaction);
-                SaveAll(transactions);
+                this.SaveAll(transactions);
             }
         }
 

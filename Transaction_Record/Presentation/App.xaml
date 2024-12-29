@@ -1,0 +1,28 @@
+﻿<Application x:Class="Transaction_Record.Presentation.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <!-- 設定主題樣式 -->
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!--主題-->
+                <!--<materialDesign:BundledTheme BaseTheme="Dark"
+                                             PrimaryColor="Red"
+                                             SecondaryColor="Lime" />-->
+                <!--設定主題背景色-->
+                <!--<ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Dark.xaml" />-->
+                 <!--控制項樣式--> 
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign2.Defaults.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Button.xaml" />
+
+                <ResourceDictionary Source="/Presentation/Resources/LightTheme.xaml" />
+
+                <!--<ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.Grey.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Secondary/MaterialDesignColor.Cyan.xaml" />-->
+
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

@@ -8,15 +8,17 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <!--主題-->
-                <!--<materialDesign:BundledTheme BaseTheme="Dark"
-                                             PrimaryColor="Red"
-                                             SecondaryColor="Lime" />-->
+                <materialDesign:BundledTheme BaseTheme="Light"
+                                             ColorAdjustment="{materialDesign:ColorAdjustment}"
+                                             PrimaryColor="Blue"
+                                             SecondaryColor="Red" />
+                
                 <!--設定主題背景色-->
                 <!--<ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Dark.xaml" />-->
-                 <!--控制項樣式--> 
+                <!--控制項樣式-->
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign2.Defaults.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Button.xaml" />
-
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Calendar.xaml" />
                 <ResourceDictionary Source="/Presentation/Resources/LightTheme.xaml" />
 
                 <!--<ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.Grey.xaml" />

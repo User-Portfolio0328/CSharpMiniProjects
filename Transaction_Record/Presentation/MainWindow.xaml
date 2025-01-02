@@ -19,16 +19,18 @@
             </Grid.RowDefinitions>
 
             <!-- 新增交易區域 -->
-            <StackPanel Orientation="Horizontal"
-                        Grid.Row="0"
-                        Margin="0,0,0,10">
-                <TextBox x:Name="TypeTextBox"
-                         Width="100"
-                         Margin="5"
-                         materialDesign:HintAssist.Hint="收入/支出"
-                         Foreground="{DynamicResource TextColor}"
-                         BorderBrush="{DynamicResource TextColor}"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}" />
+            <StackPanel Orientation="Horizontal">
+                <ComboBox x:Name="TypeComboBox"
+                          Width="100"
+                          Margin="5"
+                          Foreground="{DynamicResource TextColor}"
+                          IsEditable="False">
+                    <ComboBoxItem Content="收入"
+                                  Background="{DynamicResource Background}"
+                                  IsSelected="True" />
+                    <ComboBoxItem Content="支出"
+                                  Background="{DynamicResource Background}" />
+                </ComboBox>
                 <TextBox x:Name="CategoryTextBox"
                          Width="150"
                          Margin="5"
@@ -46,10 +48,11 @@
                 <DatePicker x:Name="DatePicker"
                             Width="150"
                             Margin="5"
+                            VerticalAlignment="Center"
                             materialDesign:HintAssist.Hint="日期"
+                            Background="{DynamicResource DatePickerBackground}"
                             Foreground="{DynamicResource TextColor}"
-                            BorderBrush="{DynamicResource TextColor}"
-                            Style="{StaticResource MaterialDesignDatePicker}" />
+                            Style="{StaticResource MaterialDesignOutlinedDatePicker}" />                
                 <Button Content="新增交易"
                         Width="100"
                         Margin="5"
@@ -59,7 +62,7 @@
                         ToolTip="新增交易"
                         Click="AddTransaction_Click" />
             </StackPanel>
-
+            
             <!-- 交易列表與統計 -->
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
@@ -80,7 +83,7 @@
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="ID"
                                             Binding="{Binding Id}"
-                                            Width="50">
+                                            Width="70">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Margin"
@@ -160,6 +163,7 @@
                             Background="{DynamicResource ButtonBackgroundBrush}"
                             Foreground="{DynamicResource TextColor}"
                             Style="{StaticResource MaterialDesignRaisedDarkButton}"
+                            ToolTip="刪除交易"
                             Click="DeleteTransaction_Click" />
                 </StackPanel>
             </Grid>
@@ -180,15 +184,15 @@
                     <ToggleButton x:Name="ThemeChange"
                                   Width="30"
                                   Height="22"
-                                  Style="{StaticResource MaterialDesignSwitchToggleButton}"
                                   ToolTip="Default ToggleButton Style"
                                   Checked="ThemeChange_Checked"
                                   Unchecked="ThemeChange_Unchecked"
-                                  Background="{DynamicResource ButtonBackgroundBrush}"/>
+                                  Background="{DynamicResource ButtonBackgroundBrush}" />
                     <TextBlock Text="深色"
                                Margin="5"
                                VerticalAlignment="Center"
                                Foreground="{DynamicResource TextColor}" />
+
                 </StackPanel>
             </Grid>
         </Grid>

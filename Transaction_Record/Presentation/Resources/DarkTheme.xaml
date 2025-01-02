@@ -12,13 +12,7 @@
                      Color="#FFFFFF" />
     <SolidColorBrush x:Key="PanelBackgroundBrush"
                      Color="#3C3C3C" />
-    <SolidColorBrush x:Key="TextColor2"
-                     Color="#C3C3C3" />
-
-    <!-- DockPanel 樣式 
-    <Style TargetType="DockPanel">
-        <Setter Property="Background"
-                Value="{DynamicResource Background}" />
-    </Style-->
+    <SolidColorBrush x:Key="DatePickerBackground"
+                     Color="#6F00D2" />
 
 </ResourceDictionary>

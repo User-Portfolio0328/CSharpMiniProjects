@@ -1,4 +1,6 @@
-﻿using MaterialDesignThemes.Wpf;
+﻿using Aspose.Slides.Theme;
+using MaterialDesignColors;
+using MaterialDesignThemes.Wpf;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,15 +34,15 @@ namespace Transaction_Record.Presentation
             var repository = new TransactionRepository("transactions.json");
             this._service = new TransactionService(repository);
 
-            LoadTransactions();
+            this.LoadTransactions();
         }
 
         private void LoadTransactions()
         {
             var transactions = this._service.GetTransactions();
             TransactionGrid.ItemsSource = transactions.ToList();
-            TotalIncome.Text = this._service.GetTotalAmount("收入").ToString("C");
-            TotalExpense.Text = this._service.GetTotalAmount("支出").ToString("C");
+            TotalIncome.Text = this._service.GetTotalAmount(TypeComboBox.Text).ToString("C");
+            TotalExpense.Text = this._service.GetTotalAmount(TypeComboBox.Text).ToString("C");
             ProfitAndLoss.Text = this._service.ComputePnL().ToString("C");
         }
 
@@ -52,12 +54,12 @@ namespace Transaction_Record.Presentation
                 {
                     Category = CategoryTextBox.Text,
                     Amount = decimal.Parse(AmountTextBox.Text),
-                    Type = TypeTextBox.Text,
+                    Type = TypeComboBox.Text,
                     Date = (DateTime)DatePicker.SelectedDate
                 };
 
                 this._service.AddTransaction(transaction);
-                LoadTransactions();
+                this.LoadTransactions();
             }
             catch (Exception ex)
             {
@@ -70,7 +72,7 @@ namespace Transaction_Record.Presentation
             if (TransactionGrid.SelectedItem is Transaction selectedTransaction)
             {
                 this._service.DeleteTransaction(selectedTransaction.Id);
-                LoadTransactions();
+                this.LoadTransactions();
             }
             else
             {
@@ -80,12 +82,18 @@ namespace Transaction_Record.Presentation
 
         private void ThemeChange_Checked(object sender, RoutedEventArgs e)
         {
-            SwitchTheme("/Presentation/Resources/DarkTheme.xaml");
+            var theme = (BundledTheme)System.Windows.Application.Current.Resources.MergedDictionaries[0];
+            theme.PrimaryColor = PrimaryColor.DeepPurple;
+            theme.BaseTheme = BaseTheme.Dark;
+            this.SwitchTheme("/Presentation/Resources/DarkTheme.xaml");
         }
 
         private void ThemeChange_Unchecked(object sender, RoutedEventArgs e)
         {
-            SwitchTheme("/Presentation/Resources/LightTheme.xaml");
+            var theme = (BundledTheme)System.Windows.Application.Current.Resources.MergedDictionaries[0];
+            theme.PrimaryColor = PrimaryColor.Blue;
+            theme.BaseTheme = BaseTheme.Light;
+            this.SwitchTheme("/Presentation/Resources/LightTheme.xaml");
         }
 
         // 切換成指定的主題
@@ -110,6 +118,5 @@ namespace Transaction_Record.Presentation
 
             System.Windows.Application.Current.Resources.MergedDictionaries.Add(resourceDict);
         }
-
     }
 }

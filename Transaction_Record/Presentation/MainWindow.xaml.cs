@@ -41,8 +41,8 @@ namespace Transaction_Record.Presentation
         {
             var transactions = this._service.GetTransactions();
             TransactionGrid.ItemsSource = transactions.ToList();
-            TotalIncome.Text = this._service.GetTotalAmount(TypeComboBox.Text).ToString("C");
-            TotalExpense.Text = this._service.GetTotalAmount(TypeComboBox.Text).ToString("C");
+            TotalIncome.Text = this._service.GetTotalAmount("收入").ToString("C");
+            TotalExpense.Text = this._service.GetTotalAmount("支出").ToString("C");
             ProfitAndLoss.Text = this._service.ComputePnL().ToString("C");
         }
 

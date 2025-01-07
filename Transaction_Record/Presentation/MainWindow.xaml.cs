@@ -82,41 +82,14 @@ namespace Transaction_Record.Presentation
 
         private void ThemeChange_Checked(object sender, RoutedEventArgs e)
         {
-            var theme = (BundledTheme)System.Windows.Application.Current.Resources.MergedDictionaries[0];
-            theme.PrimaryColor = PrimaryColor.DeepPurple;
-            theme.BaseTheme = BaseTheme.Dark;
-            this.SwitchTheme("/Presentation/Resources/DarkTheme.xaml");
+            ((App)System.Windows.Application.Current).ThemeChange(BaseTheme.Dark);
+            ((App)System.Windows.Application.Current).SwitchTheme("/Presentation/Resources/DarkTheme.xaml");
         }
 
         private void ThemeChange_Unchecked(object sender, RoutedEventArgs e)
         {
-            var theme = (BundledTheme)System.Windows.Application.Current.Resources.MergedDictionaries[0];
-            theme.PrimaryColor = PrimaryColor.Blue;
-            theme.BaseTheme = BaseTheme.Light;
-            this.SwitchTheme("/Presentation/Resources/LightTheme.xaml");
-        }
-
-        // 切換成指定的主題
-        private void SwitchTheme(string theme)
-        {
-            var resourceDict = new ResourceDictionary
-            {
-                Source = new Uri(theme, UriKind.RelativeOrAbsolute)
-            };
-
-            // 保留其他 Resource Dictionary
-            var existingDicts = System.Windows.Application.Current.Resources.MergedDictionaries.ToList();
-
-            // 清除當前資源並應用新的 Resource Dictionary
-            System.Windows.Application.Current.Resources.MergedDictionaries.Clear();
-
-            // 先將已經存在的其他 Resource Dictionary 加回來
-            foreach (var dict in existingDicts)
-            {
-                System.Windows.Application.Current.Resources.MergedDictionaries.Add(dict);
-            }
-
-            System.Windows.Application.Current.Resources.MergedDictionaries.Add(resourceDict);
+            ((App)System.Windows.Application.Current).ThemeChange(BaseTheme.Light);
+            ((App)System.Windows.Application.Current).SwitchTheme("/Presentation/Resources/LightTheme.xaml");
         }
     }
 }

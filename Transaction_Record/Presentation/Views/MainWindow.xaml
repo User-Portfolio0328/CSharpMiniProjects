@@ -11,7 +11,7 @@
         Title="財務管理系統"
         Height="450"
         Width="800">
-
+    
     <DockPanel Background="{DynamicResource PanelBackgroundBrush}">
         <Grid Margin="10">
             <Grid.RowDefinitions>
@@ -180,12 +180,12 @@
                                Margin="5"
                                VerticalAlignment="Center"
                                Foreground="{DynamicResource TextColor}" />
-                    <ToggleButton x:Name="ThemeChange"
+                    <ToggleButton IsChecked="{Binding CurrentTheme, Converter={StaticResource ThemeToToggleConverter}}"
+                                  Command="{Binding ChangeThemeCommand}"
+                                  CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=IsChecked,Converter={StaticResource ToggleToThemeConverter}}"
                                   Width="30"
                                   Height="22"
                                   ToolTip="Default ToggleButton Style"
-                                  Checked="ThemeChange_Checked"
-                                  Unchecked="ThemeChange_Unchecked"
                                   Background="{DynamicResource ButtonBackgroundBrush}" />
                     <TextBlock Text="深色"
                                Margin="5"

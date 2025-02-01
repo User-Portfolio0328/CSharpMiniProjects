@@ -31,7 +31,5 @@ namespace Transaction_Record.Domain
 
             return true;
         }
-
-
     }
 }

@@ -1,4 +1,5 @@
-﻿using MaterialDesignThemes.Wpf.Converters;
+﻿using MaterialDesignThemes.Wpf;
+using MaterialDesignThemes.Wpf.Converters;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -10,8 +11,10 @@ using System.Threading.Tasks;
 using System.Web.Util;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media.Media3D;
 using Transaction_Record.Application;
 using Transaction_Record.Domain;
+using Transaction_Record.Infrastructure;
 using Transaction_Record.Presentation.Commands;
 
 namespace Transaction_Record.Presentation.ViewModels
@@ -26,7 +29,7 @@ namespace Transaction_Record.Presentation.ViewModels
         public decimal ProfitAndLoss => this._service.ComputePnL();
 
         public ObservableCollection<string> Types { get; set; }
-            = new ObservableCollection<string>{"收入", "支出"};
+            = new ObservableCollection<string> { "收入", "支出" };
 
         private string _type;
         public string Type
@@ -76,26 +79,44 @@ namespace Transaction_Record.Presentation.ViewModels
         public Transaction SelectedTransaction
         {
             get => this._selectedTransactions;
-            set  
+            set
             {
                 this._selectedTransactions = value;
                 this.OnPropertyChanged(nameof(this.SelectedTransaction));
             }
         }
-        
+
+        private readonly ThemePreferenceRepository _themeRepository;
+        private string _currentTheme;
+        public string CurrentTheme
+        {
+            get => this._currentTheme;
+            set
+            {
+                this._currentTheme = value;
+                this.OnPropertyChanged(nameof(this.CurrentTheme));
+            }
+        }
+
         #endregion
 
         #region Commands
         public ICommand AddTransectionCommand { get; }
         public ICommand DeleteTransectionCommand { get; }
+        public ICommand ChangeThemeCommand { get; }
         #endregion
 
         public MainViewModel(TransactionService service)
         {
-            this.Date = DateTime.Now;
-            this._service = service;
             this.AddTransectionCommand = new RelayCommand(this.AddTransaction);
             this.DeleteTransectionCommand = new RelayCommand(this.DeleteTransaction);
+            this.ChangeThemeCommand = new RelayCommand(this.ChangeTheme);
+
+            this.Date = DateTime.Now;
+            this._service = service;
+            this._themeRepository = new ThemePreferenceRepository();
+            this.CurrentTheme = this._themeRepository.LoadTheme();
+
             this.LoadTransactions();
         }
 
@@ -160,12 +181,24 @@ namespace Transaction_Record.Presentation.ViewModels
             }
         }
 
+        // 切換主題
+        private void ChangeTheme(object parameter)
+        {
+            if (parameter is string theme)
+            {
+                this.CurrentTheme = theme;
+                this._themeRepository.SaveTheme(theme);
+
+                ((App)System.Windows.Application.Current).SwitchTheme();                
+            }
+        }
+
         // 更新計算面板數字
         private void UpdateTotals()
         {
             this.OnPropertyChanged(nameof(this.TotalIncome));
             this.OnPropertyChanged(nameof(this.TotalExpense));
-            this.OnPropertyChanged(nameof(this.ProfitAndLoss));            
+            this.OnPropertyChanged(nameof(this.ProfitAndLoss));
         }
     }
 }

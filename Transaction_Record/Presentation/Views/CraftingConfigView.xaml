@@ -1,0 +1,101 @@
+﻿<UserControl x:Class="Transaction_Record.Presentation.Views.CraftingConfigView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:Transaction_Record.Presentation.Views"
+             xmlns:vm="clr-namespace:Transaction_Record.Presentation.ViewModels"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:CraftingConfigViewModel}"
+             d:DesignHeight="450"
+             d:DesignWidth="800">
+    <Grid>
+        <Grid Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <StackPanel Orientation="Horizontal"
+                        Margin="5">
+                <!-- 洗詞方式 -->
+                <ComboBox ItemsSource="{Binding RollTypes}"
+                          SelectedItem="{Binding RollType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          Width="100"
+                          Margin="5"
+                          Foreground="{DynamicResource TextColor}" />
+                <!-- 文字輸入 -->
+                <TextBox Text="{Binding Keyword, UpdateSourceTrigger=PropertyChanged}"
+                         Width="200"
+                         Margin="5"
+                         Foreground="{DynamicResource TextColor}"
+                         BorderBrush="{DynamicResource TextColor}"
+                         materialDesign:HintAssist.Hint="輸入關鍵字" />
+
+                <!-- 選擇前綴/後綴 -->
+                <ComboBox ItemsSource="{Binding AffixTypes}"
+                          SelectedItem="{Binding AffixType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          Width="100"
+                          Margin="5"
+                          Foreground="{DynamicResource TextColor}" />
+
+                <!-- 選擇詞綴階級 -->
+                <ComboBox ItemsSource="{Binding AffixTiers}"
+                          SelectedItem="{Binding AffixTier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          Width="100"
+                          Margin="5"
+                          Foreground="{DynamicResource TextColor}"
+                          materialDesign:HintAssist.Hint="詞綴階級" />
+
+                <!-- 新增條件按鈕 -->
+                <Button Content="新增條件"
+                        Width="100"
+                        Margin="5"
+                        Background="{DynamicResource ButtonBackgroundBrush}"
+                        Foreground="{DynamicResource TextColor}"
+                        Style="{StaticResource MaterialDesignRaisedDarkButton}"
+                        Command="{Binding AddConditionCommand}" />
+                <Label>
+                    <materialDesign:PackIcon Kind="HelpCircle"
+                                             VerticalAlignment="Center"
+                                             Height="25"
+                                             Width="25"
+                                             ToolTip="使用F1來啟動腳本，F3則可以停止腳本"/>
+                </Label>
+            </StackPanel>
+            <Grid Grid.Row="1">
+                <!-- 條件列表 -->
+                <ListView ItemsSource="{Binding CraftingConditions}"
+                          Margin="5">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="關鍵字"
+                                            DisplayMemberBinding="{Binding Keyword}"
+                                            Width="150" />
+                            <GridViewColumn Header="類型"
+                                            DisplayMemberBinding="{Binding AffixType}"
+                                            Width="100" />
+                            <GridViewColumn Header="詞綴階級"
+                                            DisplayMemberBinding="{Binding AffixTier}"
+                                            Width="100" />
+                            <GridViewColumn Header="操作"
+                                            Width="100">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Content="X"
+                                                Background="{DynamicResource ButtonBackgroundBrush}"
+                                                Foreground="{DynamicResource TextColor}"
+                                                Style="{StaticResource MaterialDesignRaisedDarkButton}"
+                                                Command="{Binding DataContext.RemoveConditionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

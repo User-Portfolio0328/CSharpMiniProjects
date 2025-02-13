@@ -1,28 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using Transaction_Record.Application.Services;
+using Transaction_Record.Infrastructure;
+using Transaction_Record.Presentation.ViewModels;
 
-namespace Transaction_Record.Presentation
+namespace Transaction_Record.Presentation.Views
 {
     /// <summary>
-    /// TransactionView.xaml 的互動邏輯
+    /// Interaction logic for TransactionView.xaml
     /// </summary>
-    public partial class TransactionView : Page
+    public partial class TransactionView
     {
         public TransactionView()
         {
             InitializeComponent();
+            var viewModel = App.ServiceProvider.GetRequiredService<TransactionViewModel>();
+            this.DataContext = viewModel;
         }
     }
 }

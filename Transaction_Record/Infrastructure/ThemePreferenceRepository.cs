@@ -6,25 +6,35 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Transaction_Record.Domain.Interfaces;
 
 
 namespace Transaction_Record.Infrastructure
 {
-    public class ThemePreferenceRepository
+    public class ThemePreferenceRepository : IThemePreferenceRepository
     {
-        private const string FilePath = "theme_preference.json";
+        private const string FILE_PATH = "theme_preference.json";
+
+        public ThemePreferenceRepository()
+        {
+            // 初始化空檔案（若不存在）
+            if (!File.Exists(FILE_PATH))
+            {
+                File.WriteAllText(FILE_PATH, "[]");
+            }
+        }
 
         // 讀取主題
         public string LoadTheme() 
         {
-            if (!File.Exists(FilePath))  // 若檔案不存在或無效內容，預設使用淺色主題
+            if (!File.Exists(FILE_PATH))  // 若檔案不存在或無效內容，預設使用淺色主題
             {
                 return "Light";
             }
 
             try 
             {
-                var json = File.ReadAllText(FilePath);
+                var json = File.ReadAllText(FILE_PATH);
                 return System.Text.Json.JsonSerializer.Deserialize<string>(json) ?? "Light";
             } 
             catch (Exception ex) 
@@ -38,7 +48,7 @@ namespace Transaction_Record.Infrastructure
         public void SaveTheme(string theme)
         {
             var json = System.Text.Json.JsonSerializer.Serialize(theme);
-            File.WriteAllText(FilePath, json);
+            File.WriteAllText(FILE_PATH, json);
         }
     }
 }

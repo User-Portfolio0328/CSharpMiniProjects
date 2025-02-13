@@ -1,14 +1,196 @@
-﻿<Page x:Class="Transaction_Record.Presentation.TransactionView"
-      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:Transaction_Record.Presentation"
-      mc:Ignorable="d" 
-      d:DesignHeight="450" d:DesignWidth="800"
-      Title="TransactionView">
-
+﻿<UserControl x:Class="Transaction_Record.Presentation.Views.TransactionView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Transaction_Record.Presentation.Views"
+             xmlns:vm="clr-namespace:Transaction_Record.Presentation.ViewModels"
+             xmlns:materialDesign ="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d" 
+             d:DataContext="{d:DesignInstance Type=vm:TransactionViewModel}"
+             d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-        
+        <Grid Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- 新增交易區域 -->
+            <StackPanel Orientation="Horizontal">
+                <ComboBox ItemsSource="{Binding Types}"
+                          SelectedItem="{Binding Type, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          Width="100"
+                          Margin="5"
+                          Foreground="{DynamicResource TextColor}"
+                          IsEditable="False" />
+                <TextBox Text="{Binding Category, UpdateSourceTrigger=PropertyChanged}"
+                         Width="150"
+                         Margin="5"
+                         materialDesign:HintAssist.Hint="類別"
+                         Foreground="{DynamicResource TextColor}"
+                         BorderBrush="{DynamicResource TextColor}"
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}" />
+                <TextBox Text="{Binding Amount, UpdateSourceTrigger=PropertyChanged}"
+                         Width="100"
+                         Margin="5"
+                         materialDesign:HintAssist.Hint="金額"
+                         Foreground="{DynamicResource TextColor}"
+                         BorderBrush="{DynamicResource TextColor}"
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}" />
+                <DatePicker SelectedDate="{Binding Date, UpdateSourceTrigger=PropertyChanged}"
+                            Width="150"
+                            Margin="5"
+                            VerticalAlignment="Center"
+                            materialDesign:HintAssist.Hint="日期"
+                            Background="{DynamicResource DatePickerBackground}"
+                            Foreground="{DynamicResource TextColor}"
+                            Style="{StaticResource MaterialDesignOutlinedDatePicker}" />
+                <Button Content="新增交易"
+                        Width="100"
+                        Margin="5"
+                        Background="{DynamicResource ButtonBackgroundBrush}"
+                        Foreground="{DynamicResource TextColor}"
+                        Style="{StaticResource MaterialDesignRaisedDarkButton}"
+                        ToolTip="新增交易"
+                        Command="{Binding AddTransectionCommand}" />
+            </StackPanel>
+
+            <!-- 交易列表與統計 -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="200" />
+                </Grid.ColumnDefinitions>
+
+                <!-- 交易清單 -->
+                <DataGrid ItemsSource="{Binding Transactions}"
+                          SelectedItem="{Binding SelectedTransaction}"
+                          Grid.Column="0"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          CanUserAddRows="False"
+                          Margin="5"
+                          Background="{DynamicResource Background}"
+                          BorderBrush="{DynamicResource TextColor}"
+                          Foreground="{DynamicResource TextColor}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="ID"
+                                            Binding="{Binding Id}"
+                                            Width="70">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Margin"
+                                            Value="5" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="類別"
+                                            Binding="{Binding Category}"
+                                            Width="150">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Margin"
+                                            Value="5" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="金額"
+                                            Binding="{Binding Amount}"
+                                            Width="100">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Margin"
+                                            Value="5" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="類型"
+                                            Binding="{Binding Type}"
+                                            Width="100">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Margin"
+                                            Value="5" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="日期"
+                                            Binding="{Binding Date, StringFormat=yyyy-MM-dd}"
+                                            Width="150">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Margin"
+                                            Value="5" />
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- 統計與刪除 -->
+                <StackPanel Grid.Column="1"
+                            Margin="10">
+                    <TextBlock Text="總收入："
+                               Margin="0,0,10,0"
+                               Foreground="{DynamicResource TextColor}" />
+                    <TextBlock Text="{Binding TotalIncome, StringFormat=C}"
+                               Margin="1"
+                               Foreground="{DynamicResource TextColor}" />
+                    <TextBlock Text="總支出："
+                               Margin="0,10,10,0"
+                               Foreground="{DynamicResource TextColor}" />
+                    <TextBlock Text="{Binding TotalExpense, StringFormat=C}"
+                               Margin="1"
+                               Foreground="{DynamicResource TextColor}" />
+                    <TextBlock Text="總計："
+                               FontWeight="Bold"
+                               Margin="0,10,0,0"
+                               Foreground="{DynamicResource TextColor}" />
+                    <TextBlock Text="{Binding ProfitAndLoss, StringFormat=C}"
+                               Margin="1"
+                               Foreground="{DynamicResource TextColor}" />
+                    <Button Content="刪除交易"
+                            Width="150"
+                            Margin="0,20,0,0"
+                            Background="{DynamicResource ButtonBackgroundBrush}"
+                            Foreground="{DynamicResource TextColor}"
+                            Style="{StaticResource MaterialDesignRaisedDarkButton}"
+                            ToolTip="刪除交易"
+                            Command="{Binding DeleteTransectionCommand}"
+                            CommandParameter="{Binding SelectedTransaction}" />
+                </StackPanel>
+            </Grid>
+
+            <!--主題切換-->
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Horizontal"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="淺色"
+                               Margin="5"
+                               VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextColor}" />
+                    <ToggleButton IsChecked="{Binding CurrentTheme, Converter={StaticResource ThemeToToggleConverter}}"
+                                  Command="{Binding ChangeThemeCommand}"
+                                  CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=IsChecked,Converter={StaticResource ToggleToThemeConverter}}"
+                                  Width="30"
+                                  Height="22"
+                                  ToolTip="Default ToggleButton Style"
+                                  Background="{DynamicResource ButtonBackgroundBrush}" />
+                    <TextBlock Text="深色"
+                               Margin="5"
+                               VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextColor}" />
+
+                </StackPanel>
+            </Grid>
+        </Grid>
     </Grid>
-</Page>
+</UserControl>

@@ -7,17 +7,16 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using Transaction_Record.Domain;
+using Transaction_Record.Domain.Interfaces;
 
 namespace Transaction_Record.Infrastructure
 {
-    public class TransactionRepository
+    public class TransactionRepository : ITransactionRepository
     {
-        private readonly string _filePath;
+        private readonly string _filePath = "transactions.json";
 
-        public TransactionRepository(string filePath)
+        public TransactionRepository()
         {
-            this._filePath = filePath;
-
             // 初始化空檔案（若不存在）
             if (!File.Exists(this._filePath))
             {

@@ -3,16 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Transaction_Record.Application.Interfaces;
 using Transaction_Record.Domain;
+using Transaction_Record.Domain.Interfaces;
 using Transaction_Record.Infrastructure;
 
-namespace Transaction_Record.Application
+namespace Transaction_Record.Application.Services
 {
     public class TransactionService : ITransactionService
     {
-        private readonly TransactionRepository _repository;
+        private readonly ITransactionRepository _repository;
 
-        public TransactionService(TransactionRepository repository)
+        public TransactionService(ITransactionRepository repository)
         {
             this._repository = repository ?? throw new ArgumentNullException(nameof(repository));
         }

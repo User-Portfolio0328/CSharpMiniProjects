@@ -1,13 +1,24 @@
 ﻿using MaterialDesignColors;
 using MaterialDesignThemes.Wpf;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Configuration;
 using System.Data;
+using System.Data.Linq;
 using System.Linq;
+using System.Security.Authentication.ExtendedProtection;
 using System.Threading.Tasks;
 using System.Windows;
+using Transaction_Record.Application.Interfaces;
+using Transaction_Record.Application.Services;
+using Transaction_Record.Domain;
+using Transaction_Record.Domain.Interfaces;
 using Transaction_Record.Infrastructure;
+using Transaction_Record.Infrastructure.Services;
+using Transaction_Record.Presentation.ViewModels;
+using Transaction_Record.Presentation.Views;
 
 namespace Transaction_Record.Presentation
 {
@@ -16,13 +27,61 @@ namespace Transaction_Record.Presentation
     /// </summary>
     public partial class App : System.Windows.Application
     {
-        
+        public static IServiceProvider ServiceProvider { get; private set; }
+
         protected override void OnStartup(StartupEventArgs e)
         {
+            var services = new ServiceCollection();
+
+            // Application層
+            services.AddSingleton<ICraftingConditionService, CraftingConditionService>();
+            services.AddSingleton<ITransactionRepository>(provider => new TransactionRepository());
+            services.AddSingleton<ITransactionService, TransactionService>();
+
+            // Domain層
+            services.AddTransient<ObservableCollection<CraftingCondition>>();
+            services.AddTransient<ObservableCollection<Transaction>>();
+
+            // Infrastructure層
+            
+            services.AddSingleton<IThemePreferenceRepository>(provider => new ThemePreferenceRepository());// 註冊需要的服務
+            
+            services.AddSingleton<ICraftingConfigRepository, CraftingConfigRepository>();
+            services.AddSingleton<ITransactionRepository, TransactionRepository>();
+            services.AddSingleton<IThemePreferenceRepository, ThemePreferenceRepository>();
+            services.AddSingleton<IMouseAutomationService, MouseAutomationService>();
+
+            // ViewModel層
+            services.AddTransient<CraftingConfigViewModel>();
+            services.AddTransient<TransactionViewModel>();
+            services.AddTransient<MainViewModel>();
+
+            // View層
+            services.AddTransient<MainWindow>();
+            services.AddTransient<CraftingConfigView>();
+            services.AddTransient<TransactionView>();
+
+
+            ServiceProvider = services.BuildServiceProvider();
+
+            var craftingConfig = ServiceProvider.GetRequiredService<CraftingConfigViewModel>();
+            var Transaction = ServiceProvider.GetRequiredService<TransactionViewModel>();
+            var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
+            mainWindow.Show();
+
             base.OnStartup(e);
 
             // 根據最後的設定來套用主題
             this.SwitchTheme();
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            if (MainWindow.DataContext is MouseAutomationService vm)
+            {
+                vm.Dispose();
+            }
+            base.OnExit(e);
         }
 
         // 切換Material design主題
@@ -35,9 +94,9 @@ namespace Transaction_Record.Presentation
 
         // 切換自訂主題
         public void SwitchTheme()
-        {            
+        {
             // 讀取儲存的主題
-            var themeRepository = new ThemePreferenceRepository();
+            var themeRepository = App.ServiceProvider.GetRequiredService<IThemePreferenceRepository>();
             string saveTheme = themeRepository.LoadTheme();
 
             // 根據讀取的主題來設定資源路徑,並切換主題樣式
@@ -58,7 +117,7 @@ namespace Transaction_Record.Presentation
             {
                 Source = new Uri(resourcePath, UriKind.RelativeOrAbsolute)
             };
-            
+
             // 保留其他 Resource Dictionary
             var existingDicts = Resources.MergedDictionaries.ToList();
 

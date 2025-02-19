@@ -8,9 +8,6 @@ namespace Transaction_Record.Application.Interfaces
 {
     public interface ICraftingConditionService
     {
-        bool IsAffixMatching(string itemProperty);
-        bool NeedUseAugmentationOrb(string itemProperties);
-        string ExtractValueByKeyword(string itemProperties, string regex);
 
     }
 }

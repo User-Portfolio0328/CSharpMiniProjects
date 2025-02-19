@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MahApps.Metro.Controls;
+using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -26,9 +28,9 @@ namespace Transaction_Record.Infrastructure.Services
         private Point _regalOrbPosition { get; set; } //富豪石位置
         private Point _craftItemPosition { get; set; } // 要製作的裝備位置
         private CancellationTokenSource _cancellationTokenSource;
-        private ICraftingConditionService _craftingConditionService;
         private bool _isSelecting = false;
         private int _selectionStep = 0;
+        public event Action<int> PositionSelected;
         #endregion
 
         #region P/Invoke
@@ -64,11 +66,11 @@ namespace Transaction_Record.Infrastructure.Services
         private LowLevelKeyBoardProc _proc;
         #endregion
 
-        public MouseAutomationService(ICraftingConditionService craftingConditionService)
+        public MouseAutomationService()
         {
-            this._craftingConditionService = craftingConditionService;
             this._proc = this.HookCallback;
             this.HookKeyBoard();
+            this._cancellationTokenSource = new CancellationTokenSource();
         }
 
         public void Dispose()
@@ -81,7 +83,8 @@ namespace Transaction_Record.Infrastructure.Services
         {
             this._isSelecting = true;
             this._selectionStep = 0;
-            System.Windows.MessageBox.Show("請按 F2 來選擇位置, 請先選擇改造石位置", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+            this.PositionSelected?.Invoke(this._selectionStep);
+            this._selectionStep++;
         }
 
         // 選擇需要左右鍵滑鼠的位置
@@ -92,47 +95,44 @@ namespace Transaction_Record.Infrastructure.Services
                 return;
             }
 
+            if (this.PositionSelected == null)
+            {
+                throw new InvalidOperationException("尚未訂閱事件，無法紀錄");
+            }
+
             Point mousePosition = GetMousePosition();
 
-            if (this._selectionStep == 0)
+            switch (this._selectionStep)
             {
-                this._alterationOrbPosition = mousePosition;
-                this._selectionStep++;
-                System.Windows.MessageBox.Show("請設置蛻變石位置", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                case 1:
+                    this._alterationOrbPosition = mousePosition;
+                    break;
+                case 2:
+                    this._transmutationOrbPosition = mousePosition;
+                    break;
+                case 3:
+                    this._augmentationOrbPosition = mousePosition;
+                    break;
+                case 4:
+                    this._scouringOrbPosition = mousePosition;
+                    break;
+                case 5:
+                    this._craftItemPosition = mousePosition;
+                    this._isSelecting = false;
+                    break;
             }
-            else if (_selectionStep == 1)
-            {
-                this._transmutationOrbPosition = mousePosition;
-                this._selectionStep++;
-                System.Windows.MessageBox.Show("請設置增幅石位置", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            else if (_selectionStep == 2)
-            {
-                this._augmentationOrbPosition = mousePosition;
-                this._selectionStep++;
-                System.Windows.MessageBox.Show("請設置重鑄石位置", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            else if (_selectionStep == 3)
-            {
-                this._scouringOrbPosition = mousePosition;
-                this._selectionStep++;
-                System.Windows.MessageBox.Show("請設置要製作的物品位置", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            else if (_selectionStep == 4)
-            {
-                this._craftItemPosition = mousePosition;
-                this._selectionStep++;
-                this._isSelecting = false;
-                this.ExecuteMouseClickAndCompare();
-            }
+
+            this.PositionSelected?.Invoke(this._selectionStep);
+            this._selectionStep++;
         }
 
-        private void StopAutomation() 
+        private void StopAutomation()
         {
-            if (this._cancellationTokenSource != null) 
+            if (this._cancellationTokenSource != null)
             {
                 this._cancellationTokenSource.Cancel();
-                System.Windows.MessageBox.Show("取消腳本自動化!", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                this._selectionStep = -1;
+                this.PositionSelected?.Invoke(this._selectionStep);
             }
         }
 
@@ -141,65 +141,9 @@ namespace Transaction_Record.Infrastructure.Services
             return new Point(System.Windows.Forms.Cursor.Position.X, System.Windows.Forms.Cursor.Position.Y);
         }
 
-        // 開始進行滑鼠點擊操控
-        private async void ExecuteMouseClickAndCompare()
+        private static async Task MoveMouseSmoothly(int targetX, int targetY)
         {
-            this._cancellationTokenSource = new CancellationTokenSource();
-            var token = this._cancellationTokenSource.Token;
-
-            // 複製物品的內容
-            await MoveCursorSmoothly((int)this._craftItemPosition.X, (int)this._craftItemPosition.Y);
-            await Task.Delay(50);
-            await this.CopyCraftItemProperty();
-            string itemProperty = System.Windows.Clipboard.GetText();
-            
-            //若物品不是普通物品就用重鑄石變為普通物品
-            if (this.GetCraftItemRarity(itemProperty) != "Normal")
-            {
-                await this.RightClickOnOrbAsync(this._scouringOrbPosition);
-                await this.LeftClickOnCraftItemAsync();
-            }
-
-            while (!token.IsCancellationRequested)
-            {
-                await this.CopyCraftItemProperty();
-                itemProperty = System.Windows.Clipboard.GetText();
-
-                var test = this.GetCraftItemRarity(itemProperty);
-                if (this.GetCraftItemRarity(itemProperty) == "Normal")
-                {
-                    await this.RightClickOnOrbAsync(this._transmutationOrbPosition);
-                    await this.LeftClickOnCraftItemAsync();
-                }
-                else if (this.GetCraftItemRarity(itemProperty) == "Magic" &&
-                    !this._craftingConditionService.IsAffixMatching(itemProperty) &&
-                    this._craftingConditionService.NeedUseAugmentationOrb(itemProperty))
-                {
-                    await this.RightClickOnOrbAsync(this._augmentationOrbPosition);
-                    await this.LeftClickOnCraftItemAsync();
-                }
-                else if (this.GetCraftItemRarity(itemProperty) == "Magic" && 
-                    !this._craftingConditionService.IsAffixMatching(itemProperty))
-                {
-                    await this.RightClickOnOrbAsync(this._alterationOrbPosition);
-                    await this.LeftClickOnCraftItemAsync();
-                }
-                // 比對複製的內容是否有目標詞綴, 若沒有的話則等待200毫秒進行下一次點擊循環, 若有的話則完成並結束
-                else if (this._craftingConditionService.IsAffixMatching(itemProperty))
-                {
-                    System.Windows.MessageBox.Show("完成!", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
-                    break;
-                }
-                else
-                {
-                    await Task.Delay(200);
-                }
-            }
-        }
-
-        private static async Task MoveCursorSmoothly(int targetX, int targetY)
-        {
-            int steps = 20;
+            int steps = 10;
             GetCursorPos(out POINT currentPos);
 
             int startX = currentPos.X;
@@ -221,6 +165,7 @@ namespace Transaction_Record.Infrastructure.Services
 
         private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
+
             if (nCode >= 0 && wParam == (IntPtr)WM_KEYDOWN)
             {
                 int vkCode = Marshal.ReadInt32(lParam);
@@ -228,9 +173,7 @@ namespace Transaction_Record.Infrastructure.Services
                 {
                     if (vkCode == 0x70) // F1按鍵
                     {
-
                         this.StartSelection();
-
                     }
                     else if (vkCode == 0x71) // F2按鍵
                     {
@@ -259,18 +202,11 @@ namespace Transaction_Record.Infrastructure.Services
             }
         }
 
-        private async Task CopyCraftItemProperty() 
-        {
-            // 使用Ctrl + C 複製物品屬性內容
-            SendKeys.SendWait("^%c");
-            await Task.Delay(100);
-        }
-
-        // 使用石
+        // 使用通貨石頭
         private async Task RightClickOnOrbAsync(Point orbPosition)
         {
             // 移動到改造石上並點擊右鍵
-            await MoveCursorSmoothly((int)orbPosition.X, (int)orbPosition.Y);
+            await MoveMouseSmoothly((int)orbPosition.X, (int)orbPosition.Y);
             await Task.Delay(50);
             SimulateMouseClick((int)orbPosition.X, (int)orbPosition.Y, MouseEventFlags.RightDown);
             await Task.Delay(50);
@@ -279,19 +215,64 @@ namespace Transaction_Record.Infrastructure.Services
         }
 
         // 點擊要製作的物品
-        private async Task LeftClickOnCraftItemAsync() 
+        private async Task LeftClickOnCraftItemAsync()
         {
             // 移動到要製作的物品上並點擊左鍵
-            await MoveCursorSmoothly((int)this._craftItemPosition.X, (int)this._craftItemPosition.Y);
-            await Task.Delay(50);
+            await this.MoveMouseToCraftItem();
             SimulateMouseClick((int)this._craftItemPosition.X, (int)this._craftItemPosition.Y, MouseEventFlags.LeftDown);
             await Task.Delay(50);
             SimulateMouseClick((int)this._craftItemPosition.X, (int)this._craftItemPosition.Y, MouseEventFlags.LeftUp);
             await Task.Delay(250);
         }
-        private string GetCraftItemRarity(string itemProperty) 
+
+        // 複製要製作的物品屬性
+        public async Task CopyCraftItemProperty()
         {
-            return this._craftingConditionService.ExtractValueByKeyword(itemProperty, @"Rarity:\s*(\w+)");
+            // 使用Ctrl + C 複製物品屬性內容
+            SendKeys.SendWait("^%c");
+            await Task.Delay(100);
+        }
+
+        // 移動到要製作的物品上
+        public async Task MoveMouseToCraftItem() 
+        {
+            await MoveMouseSmoothly((int)this._craftItemPosition.X, (int)this._craftItemPosition.Y);
+            await Task.Delay(50);
+        }
+
+        // 在製作物品上使用改造石
+        public async Task ClickAlterationOrbOnItemAsync()
+        {
+            await this.RightClickOnOrbAsync(this._alterationOrbPosition);
+            await this.LeftClickOnCraftItemAsync();
+        }
+
+        // 在製作物品上使用增幅石
+        public async Task ClickAugmentationOrbOnItemAsync()
+        {
+            await this.RightClickOnOrbAsync(this._augmentationOrbPosition);
+            await this.LeftClickOnCraftItemAsync();
+        }
+
+        // 在製作物品上使用蛻變石
+        public async Task ClickTransmutationOrbOnItemAsync()
+        {
+            await this.RightClickOnOrbAsync(this._transmutationOrbPosition);
+            await this.LeftClickOnCraftItemAsync();
+        }
+
+        // 在製作物品上使用重鑄石
+        public async Task ClickScouringOrbOnItemAsync()
+        {
+            await this.RightClickOnOrbAsync(this._scouringOrbPosition);
+            await this.LeftClickOnCraftItemAsync();
+        }
+
+        // 在製作物品上使用富豪石
+        public async Task ClickRegalOrbOnItemAsync()
+        {
+            await this.RightClickOnOrbAsync(this._regalOrbPosition);
+            await this.LeftClickOnCraftItemAsync();
         }
     }
 }

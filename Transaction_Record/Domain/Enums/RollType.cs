@@ -8,7 +8,7 @@ namespace Transaction_Record.Domain.Enums
 {
     public enum RollType
     {
-        改造配幅石,
-        改造配增幅配富豪
+        改造配幅石 = 1,
+        改造配增幅配富豪 = 2
     }
 }

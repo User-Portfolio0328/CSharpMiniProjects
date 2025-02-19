@@ -39,13 +39,12 @@ namespace Transaction_Record.Presentation
             services.AddSingleton<ITransactionService, TransactionService>();
 
             // Domain層
-            services.AddTransient<ObservableCollection<CraftingCondition>>();
-            services.AddTransient<ObservableCollection<Transaction>>();
+            services.AddSingleton<ObservableCollection<CraftingCondition>>();
+            services.AddSingleton<ObservableCollection<Transaction>>();
 
             // Infrastructure層
             
             services.AddSingleton<IThemePreferenceRepository>(provider => new ThemePreferenceRepository());// 註冊需要的服務
-            
             services.AddSingleton<ICraftingConfigRepository, CraftingConfigRepository>();
             services.AddSingleton<ITransactionRepository, TransactionRepository>();
             services.AddSingleton<IThemePreferenceRepository, ThemePreferenceRepository>();
@@ -64,8 +63,6 @@ namespace Transaction_Record.Presentation
 
             ServiceProvider = services.BuildServiceProvider();
 
-            var craftingConfig = ServiceProvider.GetRequiredService<CraftingConfigViewModel>();
-            var Transaction = ServiceProvider.GetRequiredService<TransactionViewModel>();
             var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
             mainWindow.Show();
 

@@ -41,7 +41,8 @@ namespace Transaction_Record.Application.Services
         {
             this._craftingConditions = craftingConditions;
             this._mouseAutomationService = mouseAutomationService;
-            this._mouseAutomationService.PositionSelected += OnPositionSelected;
+            this._mouseAutomationService.PositionSelected += this.OnPositionSelected;
+            this._mouseAutomationService.OnStopRequested += this.StopAutomation;
         }
 
         // 比對在設定條件上與物品的詞綴相符的數量
@@ -126,7 +127,7 @@ namespace Transaction_Record.Application.Services
         }
 
         // 開始進行滑鼠點擊操控
-        private async void ExecuteMouseClickAndCompare()
+        private async Task ExecuteMouseClickAndCompare()
         {
             this._cancellationTokenSource = new CancellationTokenSource();
             var token = this._cancellationTokenSource.Token;
@@ -189,11 +190,11 @@ namespace Transaction_Record.Application.Services
             var groupedConditions = this._craftingConditions
                 .GroupBy(condition => condition.AffixType)
                 .ToDictionary(group => group.Key, group => group.ToList());
-            
+
             // 若物品上的前後綴總共只有一條 且 正確 且 設定條件上的詞綴欄超過一個就使用增幅石
             if (affixes.Count == 1 &&
-                prefixCount + suffixCount == 1 && 
-                groupedConditions.Count > 1) 
+                prefixCount + suffixCount == 1 &&
+                groupedConditions.Count > 1)
             {
                 return true;
             }
@@ -251,11 +252,21 @@ namespace Transaction_Record.Application.Services
             return this.ExtractValueByKeyword(itemProperty, @"Rarity:\s*(\w+)");
         }
 
-        private void OnPositionSelected(int step)
+        private async void OnPositionSelected(int step)
         {
             if (step == 5)
             {
-                this.ExecuteMouseClickAndCompare();
+                await this.ExecuteMouseClickAndCompare();
+            }
+        }
+
+        private void StopAutomation()
+        {
+            if (this._cancellationTokenSource != null)
+            {
+                this._cancellationTokenSource.Cancel();
+                this._cancellationTokenSource.Dispose();
+                this._cancellationTokenSource = null;
             }
         }
 
@@ -276,5 +287,7 @@ namespace Transaction_Record.Application.Services
                     break;
             }
         }
+
+        
     }
 }

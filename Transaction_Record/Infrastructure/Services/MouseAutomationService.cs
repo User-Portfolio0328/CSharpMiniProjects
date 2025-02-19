@@ -31,6 +31,7 @@ namespace Transaction_Record.Infrastructure.Services
         private bool _isSelecting = false;
         private int _selectionStep = 0;
         public event Action<int> PositionSelected;
+        public event Action OnStopRequested;
         #endregion
 
         #region P/Invoke
@@ -130,6 +131,7 @@ namespace Transaction_Record.Infrastructure.Services
         {
             if (this._cancellationTokenSource != null)
             {
+                this.OnStopRequested?.Invoke();
                 this._cancellationTokenSource.Cancel();
                 this._selectionStep = -1;
                 this.PositionSelected?.Invoke(this._selectionStep);

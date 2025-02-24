@@ -96,7 +96,7 @@ namespace Transaction_Record.Presentation.ViewModels
         public ICommand DeleteTransectionCommand => new RelayCommand(this.DeleteTransaction);
         public ICommand ChangeThemeCommand => new RelayCommand(this.ChangeTheme);
         #endregion
-        public TransactionViewModel() { }
+        
         public TransactionViewModel(ITransactionService service, IThemePreferenceRepository themePreferenceRepository)
         {
             this._service = service;

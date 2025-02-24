@@ -75,7 +75,6 @@ namespace Transaction_Record.Presentation.ViewModels
         public ObservableCollection<CraftingCondition> CraftingConditions { get; set; }
         private readonly ICraftingConfigRepository _craftingConfigRepository;
         private readonly ICraftingConditionService _craftingConditionService;
-        private readonly IMouseAutomationService _mouseAutomationService;
 
         #endregion
 
@@ -89,7 +88,7 @@ namespace Transaction_Record.Presentation.ViewModels
             ICraftingConditionService craftingConditionService,
             ICraftingConfigRepository craftingConfigRepository,
             IMouseAutomationService mouseAutomationService,
-            ObservableCollection<CraftingCondition> craftingCondition)
+            ObservableCollection<CraftingCondition> craftingCondition) : base(mouseAutomationService)
         {
             this.CraftingConditions = craftingCondition;
             this.AffixTypes = new ObservableCollection<AffixSlot>((AffixSlot[])Enum.GetValues(typeof(AffixSlot)));
@@ -118,8 +117,6 @@ namespace Transaction_Record.Presentation.ViewModels
             this.RollTypes = new ObservableCollection<RollType>((RollType[])Enum.GetValues(typeof(RollType)));
             this._craftingConfigRepository = craftingConfigRepository;
             this._craftingConditionService = craftingConditionService;
-            this._mouseAutomationService = mouseAutomationService;
-            this._mouseAutomationService.PositionSelected += OnPositionSelected;
             this.LoadConditions();
         }
 
@@ -174,7 +171,7 @@ namespace Transaction_Record.Presentation.ViewModels
             }
         }
 
-        private void OnPositionSelected(int step)
+        protected override void OnPositionSelected(int step)
         {
             string contain;
 
@@ -196,9 +193,12 @@ namespace Transaction_Record.Presentation.ViewModels
                     contain = "請設置重鑄石位置";
                     break;
                 case 4:
-                    contain = "請設置要製作的物品位置";
+                    contain = "請設置富豪石位置";
                     break;
                 case 5:
+                    contain = "請設置要製作的物品位置";
+                    break;
+                case 6:
                     contain = "開始製作!";
                     break;
                 default:
@@ -207,6 +207,11 @@ namespace Transaction_Record.Presentation.ViewModels
             }
 
             System.Windows.MessageBox.Show($"{contain}!", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            if (step == 6)
+            {
+                this._craftingConditionService.ExecuteMouseClickAndCompare(this._rollType);
+            }
         }
     }
 }

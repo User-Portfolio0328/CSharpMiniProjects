@@ -118,6 +118,9 @@ namespace Transaction_Record.Infrastructure.Services
                     this._scouringOrbPosition = mousePosition;
                     break;
                 case 5:
+                    this._regalOrbPosition = mousePosition;
+                    break;
+                case 6:
                     this._craftItemPosition = mousePosition;
                     this._isSelecting = false;
                     break;

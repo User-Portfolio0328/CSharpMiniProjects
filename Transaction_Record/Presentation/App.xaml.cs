@@ -78,6 +78,12 @@ namespace Transaction_Record.Presentation
             {
                 vm.Dispose();
             }
+
+            if (ServiceProvider.GetService<ICraftingConditionService>() is IDisposable disposable) 
+            {
+                disposable.Dispose();
+            }
+
             base.OnExit(e);
         }
 

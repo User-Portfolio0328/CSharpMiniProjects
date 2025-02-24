@@ -41,7 +41,6 @@ namespace Transaction_Record.Application.Services
         {
             this._craftingConditions = craftingConditions;
             this._mouseAutomationService = mouseAutomationService;
-            this._mouseAutomationService.PositionSelected += this.OnPositionSelected;
             this._mouseAutomationService.OnStopRequested += this.StopAutomation;
         }
 
@@ -59,7 +58,7 @@ namespace Transaction_Record.Application.Services
             {
                 foreach (var itemAffix in itemAffixList)
                 {
-                    var AffixModifier = this.ConverToAffixModifier(group.Key); //製作物品條件上的前後綴
+                    var AffixModifier = this.ConverToAffixModifier(group.Key); // 獲取製作物品條件上的前後綴
                     var conditions = group.Value;
 
                     // 是否包含關鍵字
@@ -106,12 +105,8 @@ namespace Transaction_Record.Application.Services
         }
 
         // 比對物品上的詞綴是否與設定條件相符
-        private bool IsAffixMatching(string itemProperty)
+        private bool IsAffixMatching(int prefixCount, int suffixCount)
         {
-            var AffixCount = this.AffixMatchingCount(itemProperty);
-            var prefixCount = AffixCount.Item1;
-            var suffixCount = AffixCount.Item2;
-
             bool isMatching = prefixCount >= this.GroupedCraftingItemConditions().Count(s => this.ConverToAffixModifier(s.Key) == "Prefix") &&
                    suffixCount >= this.GroupedCraftingItemConditions().Count(s => this.ConverToAffixModifier(s.Key) == "Suffix");
 
@@ -127,7 +122,7 @@ namespace Transaction_Record.Application.Services
         }
 
         // 開始進行滑鼠點擊操控
-        private async Task ExecuteMouseClickAndCompare()
+        public async Task ExecuteMouseClickAndCompare(RollType rollType)
         {
             this._cancellationTokenSource = new CancellationTokenSource();
             var token = this._cancellationTokenSource.Token;
@@ -138,7 +133,7 @@ namespace Transaction_Record.Application.Services
             var itemProperty = System.Windows.Clipboard.GetText();
             var itemRarity = this.GetCraftItemRarity(itemProperty);
 
-            //若物品不是普通物品就用重鑄石變為普通物品
+            // 若物品不是普通物品就用重鑄石變為普通物品
             if (itemRarity != "Normal")
             {
                 await this._mouseAutomationService.ClickScouringOrbOnItemAsync();
@@ -149,21 +144,38 @@ namespace Transaction_Record.Application.Services
                 await this._mouseAutomationService.CopyCraftItemProperty();
                 itemProperty = System.Windows.Clipboard.GetText();
                 itemRarity = this.GetCraftItemRarity(itemProperty);
-                var isAffixMatching = this.IsAffixMatching(itemProperty);
+                var AffixCount = this.AffixMatchingCount(itemProperty);
+                var isAffixMatching = this.IsAffixMatching(AffixCount.Item1, AffixCount.Item2);
 
+                // 若為普通物品就使用蛻變石
                 if (itemRarity == "Normal")
                 {
                     await this._mouseAutomationService.ClickTransmutationOrbOnItemAsync();
                 }
+                // 若為魔法物品 且 且需要使用富豪來做裝 且 需要使用富豪石 就使用富豪石
                 else if (itemRarity == "Magic" &&
-                    this.NeedUseAugmentationOrb(itemProperty))
+                    rollType == RollType.改造配增幅配富豪 &&
+                    this.GetOrbUse(itemProperty, AffixCount.Item1, AffixCount.Item2) == "Regal Orb")
+                {
+                    await this._mouseAutomationService.ClickRegalOrbOnItemAsync();
+                }
+                // 若為魔法物品 且 需要使用增幅石就使用增幅石
+                else if (itemRarity == "Magic" &&
+                    this.GetOrbUse(itemProperty, AffixCount.Item1, AffixCount.Item2) == "Augmentation Orb")
                 {
                     await this._mouseAutomationService.ClickAugmentationOrbOnItemAsync();
                 }
+                // 若為魔法物品 且 匹配不相同就使用改造石
                 else if (itemRarity == "Magic" &&
                     !isAffixMatching)
                 {
                     await this._mouseAutomationService.ClickAlterationOrbOnItemAsync();
+                }
+                // 若為稀有物品 且 匹配不相同就使用重鑄石
+                else if (itemRarity == "Rare" &&
+                    !isAffixMatching)
+                {
+                    await this._mouseAutomationService.ClickScouringOrbOnItemAsync();
                 }
                 // 比對複製的內容是否有目標詞綴, 若沒有的話則等待200毫秒進行下一次點擊循環, 若有的話則完成並結束
                 else if (isAffixMatching)
@@ -171,34 +183,66 @@ namespace Transaction_Record.Application.Services
                     System.Windows.MessageBox.Show("完成!", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
                     break;
                 }
-                else
-                {
-                    await Task.Delay(200);
-                }
+                await Task.Delay(100);
             }
         }
 
         // 是否需要使用增幅石
-        private bool NeedUseAugmentationOrb(string itemProperty)
+        private string GetOrbUse(string itemProperty, int prefixMatchCount, int suffixMatchCount)
         {
-            var AffixCount = this.AffixMatchingCount(itemProperty);
-            var prefixCount = AffixCount.Item1;
-            var suffixCount = AffixCount.Item2;
-            var affixes = this.ParseAffixes(itemProperty);
+            if (this._craftingConditions == null)
+            {
+                throw new ArgumentException("Condition not yet set");
+            }
 
-            // 以詞綴欄區分詞綴總條目數
+            //獲取裝備上的詞綴
+            var affixes = this.ParseAffixes(itemProperty);
+            // 以詞綴欄區分詞綴總條目數與詞綴條件
             var groupedConditions = this._craftingConditions
                 .GroupBy(condition => condition.AffixType)
                 .ToDictionary(group => group.Key, group => group.ToList());
+            bool isAffixMatch = affixes
+                .Any(affix => groupedConditions
+                .Any(group => affix.affixModifier == this.ConverToAffixModifier(group.Key)));
 
-            // 若物品上的前後綴總共只有一條 且 正確 且 設定條件上的詞綴欄超過一個就使用增幅石
+            // 獲取設定條件上的前綴數量
+            int conditionPerfixcount = groupedConditions.Count(group => this.ConverToAffixModifier(group.Key) == "Prefix");
+            // 獲取設定條件上的後綴數量
+            int conditionSuffixcount = groupedConditions.Count(group => this.ConverToAffixModifier(group.Key) == "Suffix");
+            // 是否只有前綴並且超過1個
+            bool hasOnlyMultiplePrefixConditions = conditionPerfixcount > 1 && conditionSuffixcount == 0;
+            // 是否只有後綴並且超過1個
+            bool hasOnlyMultipleSuffix = conditionPerfixcount == 0 && conditionSuffixcount > 1;
+
+            // 若物品上的前後綴總共只有1條 且 正確 且 設定條件上的詞綴欄超過一個，就使用增幅石
             if (affixes.Count == 1 &&
-                prefixCount + suffixCount == 1 &&
+                prefixMatchCount + suffixMatchCount == 1 &&
                 groupedConditions.Count > 1)
             {
-                return true;
+                return "Augmentation Orb";
             }
-            return false;
+            // 若物品上的前後綴總共只有1條 且 需要的前(後)綴在不在裝備上，就使用增幅石
+            else if (affixes.Count == 1 &&
+                !isAffixMatch)
+            {
+                return "Augmentation Orb";
+            }
+            // 若物品上的前後綴總共2條 且 2條都正確 且 設定條件上的詞綴欄超過2個，就使用富豪石
+            else if (affixes.Count == 2 &&
+                prefixMatchCount + suffixMatchCount == 2 &&
+                groupedConditions.Count > 2)
+            {
+                return "Regal Orb";
+            }
+            // 若物品上的前後綴總共2條 且 其中1個正確 且 設定條件上的前(後)綴為只有多個前綴或多個後綴，就使用富豪石
+            else if (affixes.Count == 2 &&
+                prefixMatchCount + suffixMatchCount == 1 &&
+                hasOnlyMultiplePrefixConditions &&
+                hasOnlyMultipleSuffix)
+            {
+                return "Regal Orb";
+            }
+            return "Unknown";
         }
 
         private string ExtractValueByKeyword(string itemProperties, string regex)
@@ -212,13 +256,9 @@ namespace Transaction_Record.Application.Services
         private List<(string keyword, string affixModifier, int tier)> ParseAffixes(string itemProperties)
         {
             var affixes = new List<(string keyword, string affixModifier, int tier)>();
-            // 正規表達匹配的前後綴
+            // 正規表達獲取裝備上的前後綴
             var prefixRegex = new Regex(@"{ (Prefix) Modifier .*? \(Tier:\s*(\d+)\)(?:\s*—\s*[^}]+)?\s* }([\s\S]+?)(?=\r?\n{|\r?\n*Suffix Modifier|\r?\n(?:--------|$))", RegexOptions.Multiline);
             var suffixRegex = new Regex(@"{ (Suffix) Modifier .*? \(Tier:\s*(\d+)\)(?:\s*—\s*[^}]+)?\s* }([\s\S]+?)(?=\r?\n(?:--------|$))", RegexOptions.Multiline);
-
-
-            string test1 = prefixRegex.ToString();
-            string test = suffixRegex.ToString();
 
             this.MatchAffixes(prefixRegex, itemProperties, affixes);
             this.MatchAffixes(suffixRegex, itemProperties, affixes);
@@ -252,14 +292,6 @@ namespace Transaction_Record.Application.Services
             return this.ExtractValueByKeyword(itemProperty, @"Rarity:\s*(\w+)");
         }
 
-        private async void OnPositionSelected(int step)
-        {
-            if (step == 5)
-            {
-                await this.ExecuteMouseClickAndCompare();
-            }
-        }
-
         private void StopAutomation()
         {
             if (this._cancellationTokenSource != null)
@@ -287,7 +319,5 @@ namespace Transaction_Record.Application.Services
                     break;
             }
         }
-
-        
     }
 }

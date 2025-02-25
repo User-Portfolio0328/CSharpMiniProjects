@@ -31,9 +31,6 @@ namespace Transaction_Record.Presentation.ViewModels
         }
         #endregion
 
-        public ICommand AddTabCommand => new RelayCommand(this.AddTab);
-        public ICommand RemoveTabCommand => new RelayCommand(this.RemoveTab);
-
         public MainViewModel(TransactionView transactionView, CraftingConfigView craftingConfigView)
         {
             Tabs = new ObservableCollection<TabItem>
@@ -43,19 +40,5 @@ namespace Transaction_Record.Presentation.ViewModels
         };
             CurrentTab = Tabs[0];
         }
-
-        private void AddTab(object parameter) 
-        {
-            this.Tabs.Add(new TabItem { Name = "GG"});
-        }
-
-        private void RemoveTab(object parameter) 
-        {
-            if (Tabs.Any()) 
-            {
-                Tabs.RemoveAt(Tabs.Count - 1);
-            }
-        }
-        
     }
 }

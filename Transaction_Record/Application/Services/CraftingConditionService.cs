@@ -301,23 +301,5 @@ namespace Transaction_Record.Application.Services
                 this._cancellationTokenSource = null;
             }
         }
-
-        private void RollCraftItemAction(RollType rollType)
-        {
-            string rollyTypeContain;
-
-            switch (rollType)
-            {
-                case RollType.改造配幅石:
-                    rollyTypeContain = "改造配增幅";
-                    break;
-                case RollType.改造配增幅配富豪:
-                    rollyTypeContain = "改造配增幅配富豪";
-                    break;
-                default:
-                    rollyTypeContain = "未知";
-                    break;
-            }
-        }
     }
 }

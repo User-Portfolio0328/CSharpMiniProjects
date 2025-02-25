@@ -37,13 +37,13 @@ namespace Transaction_Record.Presentation
             services.AddSingleton<ICraftingConditionService, CraftingConditionService>();
             services.AddSingleton<ITransactionRepository>(provider => new TransactionRepository());
             services.AddSingleton<ITransactionService, TransactionService>();
+            services.AddSingleton<IMessageBoxService, MessageBoxService>();
 
             // Domain層
             services.AddSingleton<ObservableCollection<CraftingCondition>>();
             services.AddSingleton<ObservableCollection<Transaction>>();
 
-            // Infrastructure層
-            
+            // Infrastructure層            
             services.AddSingleton<IThemePreferenceRepository>(provider => new ThemePreferenceRepository());// 註冊需要的服務
             services.AddSingleton<ICraftingConfigRepository, CraftingConfigRepository>();
             services.AddSingleton<ITransactionRepository, TransactionRepository>();

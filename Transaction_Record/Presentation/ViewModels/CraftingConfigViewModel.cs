@@ -75,6 +75,7 @@ namespace Transaction_Record.Presentation.ViewModels
         public ObservableCollection<CraftingCondition> CraftingConditions { get; set; }
         private readonly ICraftingConfigRepository _craftingConfigRepository;
         private readonly ICraftingConditionService _craftingConditionService;
+        private readonly IMessageBoxService _messageBoxService;
 
         #endregion
 
@@ -88,6 +89,7 @@ namespace Transaction_Record.Presentation.ViewModels
             ICraftingConditionService craftingConditionService,
             ICraftingConfigRepository craftingConfigRepository,
             IMouseAutomationService mouseAutomationService,
+            IMessageBoxService messageBoxService,
             ObservableCollection<CraftingCondition> craftingCondition) : base(mouseAutomationService)
         {
             this.CraftingConditions = craftingCondition;
@@ -117,6 +119,7 @@ namespace Transaction_Record.Presentation.ViewModels
             this.RollTypes = new ObservableCollection<RollType>((RollType[])Enum.GetValues(typeof(RollType)));
             this._craftingConfigRepository = craftingConfigRepository;
             this._craftingConditionService = craftingConditionService;
+            this._messageBoxService = messageBoxService;
             this.LoadConditions();
         }
 
@@ -206,7 +209,7 @@ namespace Transaction_Record.Presentation.ViewModels
                     break;
             }
 
-            System.Windows.MessageBox.Show($"{contain}!", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+            this._messageBoxService.ShowMessage(contain, "提示");
 
             if (step == 6)
             {

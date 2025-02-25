@@ -191,7 +191,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Compile Include="Application\Interfaces\IMessageBoxService.cs" />
     <Compile Include="Application\Services\CraftingConditionService.cs" />
+    <Compile Include="Application\Services\MessageBoxService.cs" />
     <Compile Include="Domain\CraftingCondition.cs" />
     <Compile Include="Domain\Enums\AffixSlot.cs" />
     <Compile Include="Domain\Enums\RollType.cs" />

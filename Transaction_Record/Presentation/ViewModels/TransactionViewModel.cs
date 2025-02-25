@@ -14,14 +14,6 @@ namespace Transaction_Record.Presentation.ViewModels
     internal class TransactionViewModel : BaseViewModel
     {
         #region Properties
-        private readonly ITransactionService _service;
-        public ObservableCollection<Transaction> Transactions { get; set; }
-        public decimal TotalIncome => this._service.GetTotalAmount("收入");
-        public decimal TotalExpense => this._service.GetTotalAmount("支出");
-        public decimal ProfitAndLoss => this._service.ComputePnL();
-        public ObservableCollection<string> Types { get; set; }
-
-
         private string _type;
         public string Type
         {
@@ -89,6 +81,14 @@ namespace Transaction_Record.Presentation.ViewModels
             }
         }
 
+        private readonly ITransactionService _service;
+        public ObservableCollection<Transaction> Transactions { get; set; }
+        public decimal TotalIncome => this._service.GetTotalAmount("收入");
+        public decimal TotalExpense => this._service.GetTotalAmount("支出");
+        public decimal ProfitAndLoss => this._service.ComputePnL();
+        public ObservableCollection<string> Types { get; set; }
+        private readonly IMessageBoxService _messageBoxService;
+
         #endregion
 
         #region Commands
@@ -97,7 +97,9 @@ namespace Transaction_Record.Presentation.ViewModels
         public ICommand ChangeThemeCommand => new RelayCommand(this.ChangeTheme);
         #endregion
         
-        public TransactionViewModel(ITransactionService service, IThemePreferenceRepository themePreferenceRepository)
+        public TransactionViewModel(ITransactionService service, 
+            IThemePreferenceRepository themePreferenceRepository,
+            IMessageBoxService messageBoxService)
         {
             this._service = service;
             this._themeRepository = themePreferenceRepository;
@@ -105,6 +107,7 @@ namespace Transaction_Record.Presentation.ViewModels
             this.Types = new ObservableCollection<string> { "收入", "支出" };
             this.Date = DateTime.Now;
             this.CurrentTheme = this._themeRepository.LoadTheme();
+            this._messageBoxService = messageBoxService;
             this.RefreshTransactions();
         }
 
@@ -143,11 +146,7 @@ namespace Transaction_Record.Presentation.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"新增交易失敗：{ex.Message}",
-                    "錯誤",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                this._messageBoxService.ShowMessage($"新增交易失敗：{ex.Message}", "錯誤", MessageBoxImage.Error);
             }
         }
 
@@ -162,11 +161,7 @@ namespace Transaction_Record.Presentation.ViewModels
             }
             else
             {
-                MessageBox.Show(
-                    "請選擇要刪除的交易",
-                    "提示",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                this._messageBoxService.ShowMessage("請選擇要刪除的交易", "提示");
             }
         }
 

@@ -9,8 +9,10 @@ using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.UI.HtmlControls;
+using System.Web.UI.WebControls;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using Transaction_Record.Application.Interfaces;
 using Transaction_Record.Application.Services;
 using Transaction_Record.Domain;
@@ -69,55 +71,34 @@ namespace Transaction_Record.Presentation.ViewModels
             }
         }
 
+        public ObservableCollection<CraftingCondition> CraftingConditions { get; set; }
         public ObservableCollection<AffixSlot> AffixTypes { get; set; }
         public ObservableCollection<string> AffixTiers { get; set; }
         public ObservableCollection<RollType> RollTypes { get; set; }
-        public ObservableCollection<CraftingCondition> CraftingConditions { get; set; }
-        private readonly ICraftingConfigRepository _craftingConfigRepository;
         private readonly ICraftingConditionService _craftingConditionService;
         private readonly IMessageBoxService _messageBoxService;
+        private readonly ISelectionDataProviderService _selectionDataProviderService;
+
 
         #endregion
 
         #region Commands
         public ICommand AddConditionCommand => new RelayCommand(this.AddCondition);
-        public ICommand RemoveConditionCommand => new RelayCommand<CraftingCondition>(this.RemoveCondition);
+        public ICommand RemoveConditionCommand => new RelayCommand<CraftingCondition>(this.DeleteCondition);
         #endregion
 
         public CraftingConfigViewModel(
-            IServiceProvider serviceProvider,
+            ObservableCollection<CraftingCondition> craftingConditions,
             ICraftingConditionService craftingConditionService,
-            ICraftingConfigRepository craftingConfigRepository,
             IMouseAutomationService mouseAutomationService,
-            IMessageBoxService messageBoxService,
-            ObservableCollection<CraftingCondition> craftingCondition) : base(mouseAutomationService)
+            ISelectionDataProviderService selectionDataProviderService,
+            IMessageBoxService messageBoxService) : base(mouseAutomationService)
         {
-            this.CraftingConditions = craftingCondition;
-            this.AffixTypes = new ObservableCollection<AffixSlot>((AffixSlot[])Enum.GetValues(typeof(AffixSlot)));
-            this.AffixTiers = new ObservableCollection<string>
-            {
-                "T1",
-                "T2",
-                "T3",
-                "T4",
-                "T5",
-                "T6",
-                "T7",
-                "T8",
-                "T9",
-                "T10",
-                "T11",
-                "T12",
-                "T13",
-                "T14",
-                "T15",
-                "T16",
-                "T17",
-                "T18",
-                "T19"
-            };
-            this.RollTypes = new ObservableCollection<RollType>((RollType[])Enum.GetValues(typeof(RollType)));
-            this._craftingConfigRepository = craftingConfigRepository;
+            this._selectionDataProviderService = selectionDataProviderService;
+            this.AffixTypes = selectionDataProviderService.GetAffixType();
+            this.AffixTiers = selectionDataProviderService.GetAffixTier();
+            this.RollTypes = selectionDataProviderService.GetRollType();
+            this.CraftingConditions = craftingConditions;
             this._craftingConditionService = craftingConditionService;
             this._messageBoxService = messageBoxService;
             this.LoadConditions();
@@ -129,48 +110,47 @@ namespace Transaction_Record.Presentation.ViewModels
             {
                 return;
             }
-
-            var craftingCondition = new CraftingCondition
+            try
             {
-                Keyword = this.Keyword,
-                AffixType = this.AffixType,
-                AffixTier = this.AffixTier
-            };
-            this.CraftingConditions.Add(craftingCondition);
-            this.SaveConfig();
+                var craftingCondition = new CraftingCondition
+                {
+                    Keyword = this.Keyword,
+                    AffixType = this.AffixType,
+                    AffixTier = this.AffixTier
+                };
 
-            this.Keyword = string.Empty;
-            this.AffixType = craftingCondition.AffixType;
-            this.AffixTier = craftingCondition.AffixTier;
+                this._craftingConditionService.AddCondition(craftingCondition);
+                this.LoadConditions();
+
+                this.Keyword = string.Empty;
+                this.AffixType = craftingCondition.AffixType;
+                this.AffixTier = craftingCondition.AffixTier;
+            }
+            catch (Exception ex)
+            {
+                this._messageBoxService.ShowMessage($"新增條件失敗：{ex.Message}", "錯誤", MessageBoxImage.Error);
+            }
         }
 
-        private void RemoveCondition(CraftingCondition craftingCondition)
+        private void DeleteCondition(CraftingCondition craftingCondition)
         {
             if (craftingCondition == null)
             {
                 return;
             }
 
-            this.CraftingConditions.Remove(craftingCondition);
-            this.SaveConfig();
-        }
-
-        private void SaveConfig()
-        {
-            this._craftingConfigRepository.SaveCondition(this.CraftingConditions);
+            this._craftingConditionService.DeleteCondition(craftingCondition.Id);
+            this.LoadConditions();
         }
 
         private void LoadConditions()
         {
-            var savedConditions = this._craftingConfigRepository.LoadCondition();
+            var savedConditions = this._craftingConditionService.LoadCondition();
+            this.CraftingConditions.Clear();
 
-            if (savedConditions != null && savedConditions.Any())
+            foreach (var condition in savedConditions)
             {
-                this.CraftingConditions.Clear();
-                foreach (var condition in savedConditions)
-                {
-                    this.CraftingConditions.Add(condition);
-                }
+                this.CraftingConditions.Add(condition);
             }
         }
 

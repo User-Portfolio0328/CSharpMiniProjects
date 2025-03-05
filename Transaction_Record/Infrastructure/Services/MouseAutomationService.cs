@@ -210,7 +210,7 @@ namespace Transaction_Record.Infrastructure.Services
         // 使用通貨石頭
         private async Task RightClickOnOrbAsync(Point orbPosition)
         {
-            // 移動到改造石上並點擊右鍵
+            // 移動到指定石頭上並點擊右鍵
             await MoveMouseSmoothly((int)orbPosition.X, (int)orbPosition.Y);
             await Task.Delay(50);
             SimulateMouseClick((int)orbPosition.X, (int)orbPosition.Y, MouseEventFlags.RightDown);

@@ -11,10 +11,9 @@ namespace Transaction_Record.Presentation.Views
     /// </summary>
     public partial class TransactionView
     {
-        public TransactionView()
+        public TransactionView(TransactionViewModel viewModel)
         {
             InitializeComponent();
-            var viewModel = App.ServiceProvider.GetRequiredService<TransactionViewModel>();
             this.DataContext = viewModel;
         }
     }

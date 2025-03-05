@@ -2,53 +2,61 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity.Core.Common.CommandTrees;
+using System.Data.SQLite;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Transaction_Record.Domain.Interfaces;
+using Transaction_Record.Infrastructure.Services;
 
 
 namespace Transaction_Record.Infrastructure
 {
     public class ThemePreferenceRepository : IThemePreferenceRepository
     {
-        private const string FILE_PATH = "theme_preference.json";
+        private readonly DatabaseService _databaseService;
 
-        public ThemePreferenceRepository()
+        public ThemePreferenceRepository(DatabaseService databaseService)
         {
-            // 初始化空檔案（若不存在）
-            if (!File.Exists(FILE_PATH))
-            {
-                File.WriteAllText(FILE_PATH, "[]");
-            }
+            this._databaseService = databaseService;
         }
 
         // 讀取主題
         public string LoadTheme() 
         {
-            if (!File.Exists(FILE_PATH))  // 若檔案不存在或無效內容，預設使用淺色主題
-            {
-                return "Light";
-            }
+            string result = "";
 
-            try 
+            using (var connection = this._databaseService.GetConnection())
             {
-                var json = File.ReadAllText(FILE_PATH);
-                return System.Text.Json.JsonSerializer.Deserialize<string>(json) ?? "Light";
-            } 
-            catch (Exception ex) 
-            { 
-                Console.WriteLine($"讀取錯誤:{ex.Message}");
-                return "Light";
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = "SELECT Theme FROM ThemePreferences LIMIT 1;";
+                    result = command.ExecuteScalar()?.ToString();
+                }
             }
+            return result ?? "Light";
         }
 
         // 儲存主題
         public void SaveTheme(string theme)
         {
-            var json = System.Text.Json.JsonSerializer.Serialize(theme);
-            File.WriteAllText(FILE_PATH, json);
+            using (var connection = this._databaseService.GetConnection())
+            {
+                using (var deleteCommand = connection.CreateCommand())
+                {
+                    deleteCommand.CommandText = "DELETE FROM ThemePreferences;";
+                    deleteCommand.ExecuteNonQuery();
+                }
+
+                using (var insertCommand = connection.CreateCommand())
+                {
+                    insertCommand.CommandText = "INSERT INTO ThemePreferences (Theme) VALUES (@Theme);";
+                    insertCommand.Parameters.AddWithValue("@Theme", theme);
+                    insertCommand.ExecuteNonQuery();
+                }
+            }
         }
     }
 }

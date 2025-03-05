@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Transaction_Record.Domain.Interfaces
 {
-    internal interface IThemePreferenceRepository
+    public interface IThemePreferenceRepository
     {
         string LoadTheme();
         void SaveTheme(string theme);

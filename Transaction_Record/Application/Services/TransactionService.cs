@@ -12,11 +12,11 @@ namespace Transaction_Record.Application.Services
 {
     public class TransactionService : ITransactionService
     {
-        private readonly ITransactionRepository _repository;
+        private readonly ITransactionRepository _transactionRepository;
 
-        public TransactionService(ITransactionRepository repository)
+        public TransactionService(ITransactionRepository transactionRepository)
         {
-            this._repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            this._transactionRepository = transactionRepository ?? throw new ArgumentNullException(nameof(transactionRepository));
         }
 
         // 新增交易
@@ -27,19 +27,19 @@ namespace Transaction_Record.Application.Services
                 throw new ArgumentException("Invalid transaction");
             }
 
-            this._repository.Add(transaction);
+            this._transactionRepository.AddTransaction(transaction);
         }
 
         // 刪除交易
         public void DeleteTransaction(int id)
         {
-            this._repository.Delete(id);
+            this._transactionRepository.DeleteTransaction(id);
         }
 
         // 獲取所有交易
         public IEnumerable<Transaction> GetTransactions()
         {
-            return this._repository.GetAll();
+            return this._transactionRepository.LoadTransaction();
         }
 
         // 計算收入或支出總金額
@@ -50,8 +50,8 @@ namespace Transaction_Record.Application.Services
                 throw new ArgumentException("Type cannot be null or empty");
             }
 
-            return this._repository
-                .GetAll()
+            return this._transactionRepository
+                .LoadTransaction()
                 .Where(t => t.Type.Equals(type, StringComparison.OrdinalIgnoreCase))
                 .Sum(t => t.Amount);
         }

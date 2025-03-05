@@ -10,6 +10,7 @@ namespace Transaction_Record.Domain.Interfaces
     public interface ICraftingConfigRepository
     {
         ObservableCollection<CraftingCondition> LoadCondition();
-        void SaveCondition(ObservableCollection<CraftingCondition> condition);
+        void AddCondition(CraftingCondition craftingCondition);
+        void DeleteCondition(int id);
     }
 }

@@ -7,7 +7,7 @@ using Transaction_Record.Domain;
 
 namespace Transaction_Record.Application.Interfaces
 {
-    internal interface ITransactionService
+    public interface ITransactionService
     {
         void AddTransaction(Transaction transaction); // 新增交易
         void DeleteTransaction(int id); // 刪除交易

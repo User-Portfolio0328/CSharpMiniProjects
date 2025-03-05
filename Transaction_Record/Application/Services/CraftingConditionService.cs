@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web.UI.HtmlControls;
 using System.Windows;
 using Transaction_Record.Application.Interfaces;
 using Transaction_Record.Domain;
@@ -22,6 +23,8 @@ namespace Transaction_Record.Application.Services
         #region Properties
         private readonly ObservableCollection<CraftingCondition> _craftingConditions;
         private readonly IMouseAutomationService _mouseAutomationService;
+        private readonly IMessageBoxService _messageBoxService;
+        private readonly ICraftingConfigRepository _craftingConfigRepository;
         private CancellationTokenSource _cancellationTokenSource;
         #endregion
 
@@ -37,11 +40,37 @@ namespace Transaction_Record.Application.Services
             { AffixSlot.第四條後綴, "Suffix" }
         };
 
-        public CraftingConditionService(ObservableCollection<CraftingCondition> craftingConditions, IMouseAutomationService mouseAutomationService)
+        public CraftingConditionService(
+            ObservableCollection<CraftingCondition> craftingConditions, 
+            IMouseAutomationService mouseAutomationService,
+            IMessageBoxService messageBoxService,
+            ICraftingConfigRepository craftingConfigRepository)
         {
             this._craftingConditions = craftingConditions;
             this._mouseAutomationService = mouseAutomationService;
+            this._messageBoxService = messageBoxService;
+            this._craftingConfigRepository = craftingConfigRepository;
             this._mouseAutomationService.OnStopRequested += this.StopAutomation;
+        }
+
+        public void AddCondition(CraftingCondition craftingCondition) 
+        {
+            if (craftingCondition == null || !craftingCondition.IsValid()) 
+            {
+                throw new AggregateException("Invalid condition");
+            }
+
+            this._craftingConfigRepository.AddCondition(craftingCondition);
+        }
+
+        public void DeleteCondition(int id) 
+        {
+            this._craftingConfigRepository.DeleteCondition(id);
+        }
+
+        public ObservableCollection<CraftingCondition> LoadCondition()
+        {
+            return this._craftingConfigRepository.LoadCondition();
         }
 
         // 比對在設定條件上與物品的詞綴相符的數量
@@ -180,7 +209,7 @@ namespace Transaction_Record.Application.Services
                 // 比對複製的內容是否有目標詞綴, 若沒有的話則等待200毫秒進行下一次點擊循環, 若有的話則完成並結束
                 else if (isAffixMatching)
                 {
-                    System.Windows.MessageBox.Show("完成!", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                    this._messageBoxService.ShowMessage("完成", "提示");
                     break;
                 }
                 await Task.Delay(100);

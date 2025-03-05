@@ -27,7 +27,7 @@ namespace Transaction_Record.Presentation
     /// </summary>
     public partial class App : System.Windows.Application
     {
-        public static IServiceProvider ServiceProvider { get; private set; }
+        private static IServiceProvider _serviceProvider { get; set; }
 
         protected override void OnStartup(StartupEventArgs e)
         {
@@ -35,20 +35,27 @@ namespace Transaction_Record.Presentation
 
             // Application層
             services.AddSingleton<ICraftingConditionService, CraftingConditionService>();
-            services.AddSingleton<ITransactionRepository>(provider => new TransactionRepository());
+            services.AddSingleton<ITransactionRepository, TransactionRepository>();
             services.AddSingleton<ITransactionService, TransactionService>();
             services.AddSingleton<IMessageBoxService, MessageBoxService>();
+            services.AddSingleton<ISelectionDataProviderService, SelectionDataProviderService>();
 
             // Domain層
             services.AddSingleton<ObservableCollection<CraftingCondition>>();
             services.AddSingleton<ObservableCollection<Transaction>>();
 
-            // Infrastructure層            
-            services.AddSingleton<IThemePreferenceRepository>(provider => new ThemePreferenceRepository());// 註冊需要的服務
+            // Infrastructure層
+            services.AddSingleton<DatabaseService>();
+            services.AddSingleton<IThemePreferenceRepository>(provider => 
+            {
+                var databaseService = provider.GetRequiredService<DatabaseService>();
+                return new ThemePreferenceRepository(databaseService);
+            });
             services.AddSingleton<ICraftingConfigRepository, CraftingConfigRepository>();
             services.AddSingleton<ITransactionRepository, TransactionRepository>();
             services.AddSingleton<IThemePreferenceRepository, ThemePreferenceRepository>();
             services.AddSingleton<IMouseAutomationService, MouseAutomationService>();
+            services.AddTransient<CraftingConfigRepository>();
 
             // ViewModel層
             services.AddTransient<CraftingConfigViewModel>();
@@ -61,9 +68,9 @@ namespace Transaction_Record.Presentation
             services.AddTransient<TransactionView>();
 
 
-            ServiceProvider = services.BuildServiceProvider();
+            _serviceProvider = services.BuildServiceProvider();
 
-            var mainWindow = ServiceProvider.GetRequiredService<MainWindow>();
+            var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
             mainWindow.Show();
 
             base.OnStartup(e);
@@ -79,7 +86,7 @@ namespace Transaction_Record.Presentation
                 vm.Dispose();
             }
 
-            if (ServiceProvider.GetService<ICraftingConditionService>() is IDisposable disposable) 
+            if (_serviceProvider.GetService<ICraftingConditionService>() is IDisposable disposable) 
             {
                 disposable.Dispose();
             }
@@ -88,7 +95,7 @@ namespace Transaction_Record.Presentation
         }
 
         // 切換Material design主題
-        public void ThemeChange(BaseTheme baseTheme)
+        public void ChangeTheme(BaseTheme baseTheme)
         {
             var theme = (BundledTheme)System.Windows.Application.Current.Resources.MergedDictionaries[0];
             theme.PrimaryColor = PrimaryColor.Blue;
@@ -99,7 +106,7 @@ namespace Transaction_Record.Presentation
         public void SwitchTheme()
         {
             // 讀取儲存的主題
-            var themeRepository = App.ServiceProvider.GetRequiredService<IThemePreferenceRepository>();
+            var themeRepository = App._serviceProvider.GetRequiredService<IThemePreferenceRepository>();
             string saveTheme = themeRepository.LoadTheme();
 
             // 根據讀取的主題來設定資源路徑,並切換主題樣式
@@ -107,12 +114,12 @@ namespace Transaction_Record.Presentation
             if (saveTheme == "Dark")
             {
                 resourcePath = "/Presentation/Resources/DarkTheme.xaml";
-                this.ThemeChange(BaseTheme.Dark);
+                this.ChangeTheme(BaseTheme.Dark);
             }
             else
             {
                 resourcePath = "/Presentation/Resources/LightTheme.xaml";
-                this.ThemeChange(BaseTheme.Light);
+                this.ChangeTheme(BaseTheme.Light);
             }
 
             // 建立Resource Dictionary, 根據指定的資源路徑載入對應樣式

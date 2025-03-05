@@ -8,8 +8,8 @@ namespace Transaction_Record.Domain.Interfaces
 {
     public interface ITransactionRepository
     {
-        IEnumerable<Transaction> GetAll();
-        void Add(Transaction transaction);
-        void Delete(int id);
+        IEnumerable<Transaction> LoadTransaction();
+        void AddTransaction(Transaction transaction);
+        void DeleteTransaction(int id);
     }
 }

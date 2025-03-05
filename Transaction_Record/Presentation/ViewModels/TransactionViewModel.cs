@@ -11,7 +11,7 @@ using Transaction_Record.Domain.Interfaces;
 
 namespace Transaction_Record.Presentation.ViewModels
 {
-    internal class TransactionViewModel : BaseViewModel
+    public class TransactionViewModel : BaseViewModel
     {
         #region Properties
         private string _type;
@@ -87,7 +87,9 @@ namespace Transaction_Record.Presentation.ViewModels
         public decimal TotalExpense => this._service.GetTotalAmount("支出");
         public decimal ProfitAndLoss => this._service.ComputePnL();
         public ObservableCollection<string> Types { get; set; }
+        private readonly ISelectionDataProviderService _selectionDataProviderService;
         private readonly IMessageBoxService _messageBoxService;
+
 
         #endregion
 
@@ -97,14 +99,18 @@ namespace Transaction_Record.Presentation.ViewModels
         public ICommand ChangeThemeCommand => new RelayCommand(this.ChangeTheme);
         #endregion
         
-        public TransactionViewModel(ITransactionService service, 
+        public TransactionViewModel(
+            ObservableCollection<Transaction> transactions,
+            ITransactionService service, 
             IThemePreferenceRepository themePreferenceRepository,
+            ISelectionDataProviderService selectionDataProviderService,
             IMessageBoxService messageBoxService)
         {
             this._service = service;
             this._themeRepository = themePreferenceRepository;
-            this.Transactions = new ObservableCollection<Transaction>();
-            this.Types = new ObservableCollection<string> { "收入", "支出" };
+            this.Transactions = transactions;
+            this._selectionDataProviderService = selectionDataProviderService;
+            this.Types = selectionDataProviderService.GetTransactionType();
             this.Date = DateTime.Now;
             this.CurrentTheme = this._themeRepository.LoadTheme();
             this._messageBoxService = messageBoxService;

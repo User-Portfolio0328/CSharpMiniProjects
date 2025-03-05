@@ -14,6 +14,5 @@ namespace Transaction_Record.Application.Services
         {
             System.Windows.MessageBox.Show(message, title, System.Windows.MessageBoxButton.OK, icon);
         }
-        
     }
 }

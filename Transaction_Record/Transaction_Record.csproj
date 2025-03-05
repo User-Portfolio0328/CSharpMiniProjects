@@ -192,8 +192,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Compile Include="Application\Interfaces\IMessageBoxService.cs" />
+    <Compile Include="Application\Interfaces\ISelectionDataProviderService.cs" />
     <Compile Include="Application\Services\CraftingConditionService.cs" />
     <Compile Include="Application\Services\MessageBoxService.cs" />
+    <Compile Include="Application\Services\SelectionDataProviderService.cs" />
     <Compile Include="Domain\CraftingCondition.cs" />
     <Compile Include="Domain\Enums\AffixSlot.cs" />
     <Compile Include="Domain\Enums\RollType.cs" />
@@ -203,6 +205,7 @@
     <Compile Include="Domain\Interfaces\IThemePreferenceRepository.cs" />
     <Compile Include="Domain\Interfaces\ITransactionRepository.cs" />
     <Compile Include="Infrastructure\CraftingConfigRepository.cs" />
+    <Compile Include="Infrastructure\Services\DatabaseService.cs" />
     <Compile Include="Infrastructure\ThemePreferenceRepository.cs" />
     <Compile Include="Presentation\Commands\RelayCommand.cs" />
     <Compile Include="Presentation\Converters\ThemeToToggleConverter.cs" />
